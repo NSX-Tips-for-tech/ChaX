@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat by ID</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #222; color: white; }
+        #chat { width: 300px; margin: auto; border: 1px solid #555; padding: 10px; background: #333; }
+        #messages { height: 200px; overflow-y: scroll; border-bottom: 1px solid #555; text-align: left; }
+        input { width: 90%; padding: 5px; margin: 5px 0; }
+        button { background: #0a84ff; color: white; padding: 5px; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>Chat by ID</h2>
+    <input type="text" id="chatId" placeholder="Enter Chat ID">
+    <button onclick="joinChat()">Join Chat</button>
+
+    <div id="chat" style="display:none;">
+        <div id="messages"></div>
+        <input type="text" id="messageInput" placeholder="Type a message">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // Firebase Config (Replace with your own)
+        const firebaseConfig = YOUR_FIREBASE_CONFIG_HERE;
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        let chatRef = null;
+
+        function joinChat() {
+            const chatId = document.getElementById('chatId').value.trim();
+            if (!chatId) return alert("Enter a valid Chat ID!");
+
+            chatRef = database.ref("chats/" + chatId);
+            document.getElementById('chat').style.display = "block";
+            loadMessages();
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message) return;
+
+            chatRef.push({
+                text: message,
+                timestamp: Date.now()
+            });
+
+            document.getElementById('messageInput').value = "";
+        }
+
+        function loadMessages() {
+            chatRef.on("child_added", (snapshot) => {
+                const data = snapshot.val();
+                const msgDiv = document.createElement("div");
+                msgDiv.textContent = data.text;
+                document.getElementById('messages').appendChild(msgDiv);
+            });
+        }
+    </script>
+
+</body>
+</html>
